@@ -1,0 +1,61 @@
+
+syntax = "proto3";
+
+
+package Brocker;
+
+option java_package = "com.fizlrock.messagebrocker";
+option java_outer_classname = "BrockerProtos";
+
+// Регистрация нового пользователя
+
+message RegisterNewUserRequest{
+  string user_id = 1;
+}
+
+// Отправка сообщений
+
+message SendMessageResponse {
+  enum MessageState {
+    ACCEPTED = 1;
+    REJECTED = 2;   
+  }
+  enum RejectReason {
+    UNKNOWN_RECIPIENT_ID = 1;    
+  }
+
+  MessageState state = 1;
+  optional RejectReason = 2;
+}
+
+// Получение сообщений с удалением на сервере
+
+message GetMessageRequest {
+  string recipient_id = 1;
+  optional int32 limit = 2;
+}
+
+// Проверка наличия сообщений для пользователя
+
+message Message {
+  string sender_id = 1;
+  string recipient_id = 2;
+  // Нужно ограничение на поля !!!
+  repeated bytes data = 3 [packed = true];
+}
+
+
+
+service Brocker {
+  rpc RegisterNewUser(google.protobuf.Empty) returns (RegisterNewUserRequest);
+  rpc SendMessages(stream Message) returns (stream SendMessageResponse);
+  rpc getMessages(GetMessageRequest) returns (stream Message);
+}
+
+
+
+
+
+
+
+
