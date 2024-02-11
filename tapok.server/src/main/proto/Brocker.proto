@@ -2,16 +2,17 @@
 syntax = "proto3";
 
 
-package Brocker;
+package fizlrock.grpc.MessageBrocker;
 
 option java_package = "com.fizlrock.messagebrocker";
 option java_outer_classname = "BrockerProtos";
-
+//
+option java_multiple_files = true;
 import "google/protobuf/empty.proto";
-
+//
 // Регистрация нового пользователя
 
-message RegisterNewUserRequest{
+message RegisterNewUserResponse{
   string user_id = 1;
 }
 
@@ -51,9 +52,9 @@ message Message {
 
 
 service Brocker {
-  rpc RegisterNewUser(google.protobuf.Empty) returns (RegisterNewUserRequest);
+  rpc RegisterNewUser(google.protobuf.Empty) returns (RegisterNewUserResponse);
   rpc SendMessages(stream Message) returns (stream SendMessageResponse);
-  rpc getMessages(GetMessageRequest) returns (stream Message);
+  rpc GetMessages(GetMessageRequest) returns (stream Message);
 }
 
 

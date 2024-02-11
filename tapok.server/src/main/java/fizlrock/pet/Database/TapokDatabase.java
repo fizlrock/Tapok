@@ -14,7 +14,7 @@ import com.google.protobuf.ByteString;
  */
 public interface TapokDatabase {
 
-  public record Message(ByteString bytes, UUID sender_id, UUID recipient_id) {
+  public record MessageDTO(ByteString bytes, UUID sender_id, UUID recipient_id) {
   }
 
   /**
@@ -29,9 +29,9 @@ public interface TapokDatabase {
   /**
    * Заносит в базу данных сообщение.
    * 
-   * @param m - сообщение {@link Message}
+   * @param m - сообщение {@link MessageDTO}
    */
-  public void sendMessage(Message m);
+  public void sendMessage(MessageDTO m);
 
   /**
    * Проверяет ящик пользователя
@@ -49,6 +49,6 @@ public interface TapokDatabase {
    * @param limit        - максимальное число сообщений
    * @return List<Message>
    */
-  public Message receiveMessage(UUID recipient_id);
+  public MessageDTO receiveMessage(UUID recipient_id);
 
 }

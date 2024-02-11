@@ -12,7 +12,7 @@ import java.util.UUID;
 public class InMemoryDatabase implements TapokDatabase {
 
   private Set<UUID> users = new HashSet<>();
-  private Map<UUID, List<Message>> buckets = new HashMap<>();
+  private Map<UUID, List<MessageDTO>> buckets = new HashMap<>();
 
   @Override
   public UUID registerUser() {
@@ -26,7 +26,7 @@ public class InMemoryDatabase implements TapokDatabase {
     return users.contains(id);
   }
 
-  private void validateMessage(Message m) {
+  private void validateMessage(MessageDTO m) {
     if (!hasUser(m.sender_id()))
       throw new IllegalArgumentException("Отправитель с таким ID не зарегистирован");
     if (!hasUser(m.recipient_id()))
@@ -38,10 +38,10 @@ public class InMemoryDatabase implements TapokDatabase {
   }
 
   @Override
-  public void sendMessage(Message m) {
+  public void sendMessage(MessageDTO m) {
     validateMessage(m);
     if (!buckets.containsKey(m.recipient_id())) {
-      buckets.put(m.recipient_id(), new ArrayList<Message>());
+      buckets.put(m.recipient_id(), new ArrayList<MessageDTO>());
     }
     buckets.get(m.recipient_id()).add(m);
 
@@ -57,8 +57,8 @@ public class InMemoryDatabase implements TapokDatabase {
   }
 
   @Override
-  public Message receiveMessage(UUID recipient_id) {
-    Message m = null;
+  public MessageDTO receiveMessage(UUID recipient_id) {
+    MessageDTO m = null;
 
     if (buckets.containsKey(recipient_id)) {
       var bucket = buckets.get(recipient_id);

@@ -6,7 +6,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import fizlrock.pet.Database.*;
-import fizlrock.pet.Database.TapokDatabase.Message;
+import fizlrock.pet.Database.TapokDatabase.MessageDTO;
 
 import org.junit.jupiter.api.Test;
 
@@ -25,11 +25,11 @@ public class InMemoryDBTests {
     return ByteString.copyFrom(bytes);
   }
 
-  private Message getRandomMessage(){
+  private MessageDTO getRandomMessage(){
     var recipient = db.registerUser();
     var sender = db.registerUser();
     var bytes = getRandomBytes();
-    return new Message(bytes, sender, recipient);
+    return new MessageDTO(bytes, sender, recipient);
   }
 
   @Test
@@ -49,7 +49,7 @@ public class InMemoryDBTests {
     var recipient = UUID.randomUUID();
     var bytes = getRandomBytes();
 
-    Message m = new Message(bytes, sender, recipient);
+    MessageDTO m = new MessageDTO(bytes, sender, recipient);
 
     assertThrows(IllegalArgumentException.class, () -> {
       db.sendMessage(m);
@@ -64,7 +64,7 @@ public class InMemoryDBTests {
     var bytes = new byte[100];
     ThreadLocalRandom.current().nextBytes(bytes);
 
-    Message m = new Message(ByteString.copyFrom(bytes), sender, recipient);
+    MessageDTO m = new MessageDTO(ByteString.copyFrom(bytes), sender, recipient);
 
     assertThrows(IllegalArgumentException.class, () -> {
       db.sendMessage(m);
