@@ -1,8 +1,10 @@
 
 package fizlrock.pet.Database;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -10,7 +12,7 @@ import java.util.UUID;
 public class InMemoryDatabase implements TapokDatabase {
 
   private Set<UUID> users = new HashSet<>();
-  private Map<UUID, Message> buckets = new HashMap<>();
+  private Map<UUID, List<Message>> buckets = new HashMap<>();
 
   @Override
   public UUID registerUser() {
@@ -24,22 +26,46 @@ public class InMemoryDatabase implements TapokDatabase {
     return users.contains(id);
   }
 
+  private void validateMessage(Message m) {
+    if (!hasUser(m.sender_id()))
+      throw new IllegalArgumentException("Отправитель с таким ID не зарегистирован");
+    if (!hasUser(m.recipient_id()))
+      throw new IllegalArgumentException("Получатель с таким ID не зарегистирован");
+
+    if (m.bytes().size() > 100)
+      throw new IllegalArgumentException("Слишком большой размер сообщения");
+
+  }
+
   @Override
   public void sendMessage(Message m) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'sendMessage'");
+    validateMessage(m);
+    if (!buckets.containsKey(m.recipient_id())) {
+      buckets.put(m.recipient_id(), new ArrayList<Message>());
+    }
+    buckets.get(m.recipient_id()).add(m);
+
   }
 
   @Override
   public int countMessageInBucket(UUID recipient_id) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'countMessageInBucket'");
+    int result = 0;
+    if (buckets.containsKey(recipient_id))
+      result = buckets.get(recipient_id).size();
+
+    return result;
   }
 
   @Override
-  public Message receiveMessage(UUID recipient_id, int limit) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'receiveMessage'");
+  public Message receiveMessage(UUID recipient_id) {
+    Message m = null;
+
+    if (buckets.containsKey(recipient_id)) {
+      var bucket = buckets.get(recipient_id);
+      if (bucket.size() > 0)
+        m = buckets.get(recipient_id).removeLast();
+    }
+    return m;
   }
 
 }
