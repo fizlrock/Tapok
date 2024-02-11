@@ -1,6 +1,7 @@
 package fizlrock.pet.Service;
 
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import com.fizlrock.messagebrocker.GetMessageRequest;
 import com.fizlrock.messagebrocker.Message;
@@ -19,14 +20,23 @@ import io.grpc.stub.StreamObserver;
 public class TapokImpl extends BrockerImplBase {
 
   TapokDatabase db = new InMemoryDatabase();
+  Logger logger = Logger.getLogger(this.getClass().getName());
+
+  {
+    logger.info("Контроллер создан");
+  }
 
   @Override
   public void registerNewUser(Empty request, StreamObserver<RegisterNewUserResponse> observer) {
+
+    logger.info("Запрос на регистрацию пользователя");
     try {
       var response = RegisterNewUserResponse
           .newBuilder()
           .setUserId(db.registerUser().toString())
           .build();
+      logger.info(response.toString());
+
       observer.onNext(response);
     } catch (Exception e) {
       observer.onError(e);
@@ -38,9 +48,13 @@ public class TapokImpl extends BrockerImplBase {
   @Override
   public StreamObserver<Message> sendMessages(StreamObserver<SendMessageResponse> observer) {
     return new StreamObserver<Message>() {
+      {
+        logger.info("Открытие потоков для получения сообщений");
+      }
 
       @Override
       public void onCompleted() {
+        logger.info("Закрытие потоков для получения сообщений");
         observer.onCompleted();
       }
 
@@ -52,6 +66,7 @@ public class TapokImpl extends BrockerImplBase {
 
       @Override
       public void onNext(Message m) {
+        logger.info("Клиент отправил посылку:" + m);
         var recipient_id = UUID.fromString(m.getRecipientId());
         var sender_id = UUID.fromString(m.getSenderId());
 
@@ -69,6 +84,7 @@ public class TapokImpl extends BrockerImplBase {
           db.sendMessage(mdto);
           response.setState(MessageState.ACCEPTED);
         }
+        logger.info(response.toString());
 
         observer.onNext(response.build());
 
@@ -79,6 +95,8 @@ public class TapokImpl extends BrockerImplBase {
 
   @Override
   public void getMessages(GetMessageRequest request, StreamObserver<Message> observer) {
+
+    logger.info("Запрос на получение сообщений");
     var recipient_uuid = UUID.fromString(request.getRecipientId());
     try {
       MessageDTO m = null;
@@ -89,6 +107,7 @@ public class TapokImpl extends BrockerImplBase {
             .setRecipientId(m.recipient_id().toString())
             .setData(m.bytes())
             .build();
+        logger.info(response.toString());
 
         observer.onNext(response);
       }
