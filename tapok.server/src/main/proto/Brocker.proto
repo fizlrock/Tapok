@@ -7,6 +7,8 @@ package Brocker;
 option java_package = "com.fizlrock.messagebrocker";
 option java_outer_classname = "BrockerProtos";
 
+import "google/protobuf/empty.proto";
+
 // Регистрация нового пользователя
 
 message RegisterNewUserRequest{
@@ -17,22 +19,24 @@ message RegisterNewUserRequest{
 
 message SendMessageResponse {
   enum MessageState {
-    ACCEPTED = 1;
-    REJECTED = 2;   
+    ACCEPTED = 0;
+    REJECTED = 1;   
   }
   enum RejectReason {
-    UNKNOWN_RECIPIENT_ID = 1;    
-  }
+    UNKNOWN_RECIPIENT_ID = 0;    
+    UNKNOWN_SENDER_ID = 1;
+    ILLEGAL_MESSAGE_SIZE = 2;
+   }
 
   MessageState state = 1;
-  optional RejectReason = 2;
+  RejectReason reject_reason = 2;
 }
 
 // Получение сообщений с удалением на сервере
 
 message GetMessageRequest {
   string recipient_id = 1;
-  optional int32 limit = 2;
+   int32 limit = 2;
 }
 
 // Проверка наличия сообщений для пользователя
@@ -41,7 +45,7 @@ message Message {
   string sender_id = 1;
   string recipient_id = 2;
   // Нужно ограничение на поля !!!
-  repeated bytes data = 3 [packed = true];
+  bytes data = 3;
 }
 
 
