@@ -1,7 +1,9 @@
 package fizlrock.pet.Service;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import com.fizlrock.messagebrocker.GetMessageRequest;
 import com.fizlrock.messagebrocker.Message;
@@ -99,24 +101,30 @@ public class TapokImpl extends BrockerImplBase {
     logger.info("Запрос на получение сообщений");
     var recipient_uuid = UUID.fromString(request.getRecipientId());
     try {
-      MessageDTO m = null;
 
-      while ((m = db.receiveMessage(recipient_uuid)) != null) {
-        Message response = Message.newBuilder()
-            .setSenderId(m.sender_id().toString())
-            .setRecipientId(m.recipient_id().toString())
-            .setData(m.bytes())
-            .build();
-        logger.info(response.toString());
-
-        observer.onNext(response);
-      }
+      Stream.generate(() -> db.receiveMessage(recipient_uuid))
+          .takeWhile(x -> x != null)
+          .map(this::toMessage)
+          .forEach(x -> {
+            logger.info(x.toString());
+            observer.onNext(x);
+          });
 
     } catch (Exception e) {
       observer.onError(e);
     } finally {
       observer.onCompleted();
     }
+
+  }
+
+  private Message toMessage(MessageDTO dto) {
+
+    return Message.newBuilder()
+        .setSenderId(dto.sender_id().toString())
+        .setRecipientId(dto.recipient_id().toString())
+        .setData(dto.bytes())
+        .build();
 
   }
 
